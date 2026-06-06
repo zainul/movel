@@ -1,0 +1,62 @@
+version: "3.9"
+
+networks:
+  # Simulates the robot-side local network
+  robot-net:
+    driver: bridge
+
+  # Simulates the cloud-side network
+  cloud-net:
+    driver: bridge
+
+services:
+
+  ros-plugin:
+    build:
+      context: ./ros-plugin
+      dockerfile: Dockerfile
+    container_name: ros-plugin
+    networks:
+      - robot-net
+      - cloud-net        # bridge: plugin can reach cloud backend
+    environment:
+      BACKEND_WS_URL: ws://cloud-backend:8080/ws/plugin
+    restart: unless-stopped
+    depends_on:
+      - cloud-backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  cloud-backend:
+    build:
+      context: ./cloud-backend
+      dockerfile: Dockerfile
+    container_name: cloud-backend
+    networks:
+      - cloud-net
+    environment:
+      PORT: "8080"
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    networks:
+      - cloud-net
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    restart: unless-stopped
+    depends_on:
+      - cloud-backend

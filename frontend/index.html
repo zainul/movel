@@ -1,0 +1,351 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+  "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Movel AI - Robot Control Panel</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <style type="text/css">
+    body {
+      background-color: #ffffff;
+      color: #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      margin: 8px;
+    }
+    .win {
+      border: 2px solid #000000;
+      background: #ffffff;
+      margin-bottom: 6px;
+    }
+    .titlebar {
+      background: #000000;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 12px;
+      padding: 2px 6px;
+      letter-spacing: 1px;
+    }
+    .winbody { padding: 6px; }
+    .inset {
+      border: 2px solid #000000;
+      background: #ffffff;
+      padding: 4px;
+    }
+    .lbl { font-weight: bold; }
+
+    /* B&W status badges:
+       ok   = white bg, black border
+       bad  = black bg, white text
+       warn = white bg, black border, underlined  */
+    .ok   { border: 1px solid #000; background: #fff; color: #000;
+            padding: 1px 4px; font-weight: bold; }
+    .bad  { background: #000; color: #fff;
+            padding: 1px 5px; font-weight: bold; }
+    .warn { border: 2px solid #000; background: #fff; color: #000;
+            padding: 0 4px; font-weight: bold; text-decoration: underline; }
+
+    .key {
+      display: inline-block;
+      width: 26px; height: 24px;
+      line-height: 24px; text-align: center;
+      font-family: "Courier New", monospace;
+      font-weight: bold; font-size: 13px;
+      border: 2px solid #000000;
+      background: #ffffff;
+      cursor: default;
+    }
+    .key-active { background: #000000; color: #ffffff; }
+
+    #robotCanvas { border: 2px solid #000; display: block; }
+    marquee { color: #000000; font-weight: bold; font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<center>
+<marquee scrollamount="3">
+  ***AI ROBOT CONTROL SYSTEM v1.0 ***&nbsp;&nbsp;&nbsp;
+</marquee>
+<br>
+
+<table width="820" border="0" cellspacing="4" cellpadding="0">
+<tr valign="top">
+
+<td>
+  <div class="win">
+    <div class="titlebar">ROBOT POSITION MAP</div>
+    <div class="winbody" style="text-align:center">
+      <canvas id="robotCanvas" width="440" height="440"></canvas>
+      <br>
+      <font size="1"><i>range: -10 to +10 units &nbsp;|&nbsp; white circle = live &nbsp;|&nbsp; hollow = stale</i></font>
+    </div>
+  </div>
+</td>
+<td width="340">
+
+  <div class="win">
+    <div class="titlebar">SYSTEM STATUS</div>
+    <div class="winbody">
+      <table cellpadding="3" cellspacing="0" width="100%">
+        <tr><td class="lbl">Backend:</td>  <td id="stBackend"><span class="bad">UNKNOWN</span></td></tr>
+        <tr><td class="lbl">Plugin:</td>   <td id="stPlugin"><span class="bad">OFFLINE</span></td></tr>
+        <tr><td class="lbl">Telemetry:</td><td id="stTelemetry"><span class="bad">NO DATA</span></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="win">
+    <div class="titlebar">POSITION</div>
+    <div class="winbody">
+      <div class="inset">
+        <table cellpadding="4" cellspacing="0" width="100%">
+          <tr>
+            <td class="lbl">X:</td>
+            <td><b><font id="posX" size="4">0.00</font></b></td>
+            <td class="lbl">Y:</td>
+            <td><b><font id="posY" size="4">0.00</font></b></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="win">
+    <div class="titlebar">BATTERY LEVEL</div>
+    <div class="winbody">
+      <table width="100%" border="1" bordercolor="#000000" cellpadding="0" cellspacing="0" height="16">
+        <tr>
+          <td id="batFill"  bgcolor="#000000" width="100%">&nbsp;</td>
+          <td id="batEmpty" bgcolor="#ffffff" width="0%"></td>
+        </tr>
+      </table>
+      <div style="text-align:center; margin-top:3px;">
+        <b><span id="batPct">100.0%</span></b>
+      </div>
+    </div>
+  </div>
+
+  <div class="win">
+    <div class="titlebar">MOVEMENT CONTROL</div>
+    <div class="winbody" style="text-align:center">
+      <table cellpadding="2" cellspacing="3" align="center">
+        <tr>
+          <td></td>
+          <td><span id="keyW" class="key">W</span></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td><span id="keyA" class="key">A</span></td>
+          <td><span id="keyS" class="key">S</span></td>
+          <td><span id="keyD" class="key">D</span></td>
+        </tr>
+      </table>
+      <br>
+      <font size="1">Click the page then press W/A/S/D to move</font>
+      <div id="cmdMsg" style="margin-top:4px; font-size:11px; min-height:14px">&nbsp;</div>
+    </div>
+  </div>
+
+  <div class="win">
+    <div class="titlebar">LAST TELEMETRY</div>
+    <div class="winbody">
+      <table cellpadding="2" cellspacing="0">
+        <tr><td class="lbl">Robot ID:&nbsp;</td><td id="infoId">-</td></tr>
+        <tr><td class="lbl">Updated:&nbsp;</td> <td id="infoTs">-</td></tr>
+      </table>
+    </div>
+  </div>
+
+</td>
+</tr>
+</table>
+
+<hr width="820" size="1">
+<font size="1">
+  Movel AI Robot Control Panel
+</font>
+</center>
+
+<script type="text/javascript">
+// ── canvas ───────────────────────────────────────────────────────────────
+var canvas = document.getElementById('robotCanvas');
+var ctx = canvas.getContext('2d');
+var RANGE = 10;
+var rx = 0, ry = 0, stale = false;
+
+function draw() {
+  var W = canvas.width, H = canvas.height;
+  var cx = W / 2, cy = H / 2, sc = (W / 2) / RANGE;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+
+  // grid
+  ctx.strokeStyle = '#1e1e1e'; ctx.lineWidth = 1;
+  for (var gx = cx % sc; gx < W; gx += sc) {
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+  }
+  for (var gy = cy % sc; gy < H; gy += sc) {
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(W, gy); ctx.stroke();
+  }
+
+  // axes
+  ctx.strokeStyle = '#444'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.stroke();
+
+  var px = cx + rx * sc, py = cy - ry * sc;
+
+  if (stale) {
+    // hollow circle + X crosshair for stale state
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(px, py, 10, 0, 6.28); ctx.stroke();
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(px - 8, py - 8); ctx.lineTo(px + 8, py + 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px + 8, py - 8); ctx.lineTo(px - 8, py + 8); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '10px "Courier New"';
+    ctx.fillText('STALE', px + 14, py - 12);
+  } else {
+    // filled circle + dashed crosshair for live state
+    ctx.beginPath(); ctx.arc(px, py, 10, 0, 6.28);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 4, 0, 6.28);
+    ctx.fillStyle = '#000'; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(px - 20, py); ctx.lineTo(px + 20, py); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(px, py - 20); ctx.lineTo(px, py + 20); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.fillStyle = '#fff'; ctx.font = '11px "Courier New"';
+  ctx.fillText('(' + rx.toFixed(1) + ', ' + ry.toFixed(1) + ')', px + 14, py + (stale ? 4 : -12));
+}
+
+// ── polling with exponential backoff ─────────────────────────────────────
+var lastTs = null;
+var STALE_MS = 5000;
+
+var stateErrors = 0;
+var stateTimer  = null;
+var healthErrors = 0;
+var healthTimer  = null;
+
+function backoffMs(errors, base, cap) {
+  if (errors === 0) return base;
+  var d = base * Math.pow(2, errors);
+  return d < cap ? d : cap;
+}
+
+function setStatus(id, label, cls) {
+  document.getElementById(id).innerHTML = '<span class="' + cls + '">' + label + '</span>';
+}
+
+function scheduleState() {
+  if (stateTimer) clearTimeout(stateTimer);
+  stateTimer = setTimeout(pollState, backoffMs(stateErrors, 1000, 16000));
+}
+
+function scheduleHealth() {
+  if (healthTimer) clearTimeout(healthTimer);
+  healthTimer = setTimeout(pollHealth, backoffMs(healthErrors, 3000, 30000));
+}
+
+function pollState() {
+  fetch('/api/robot/state')
+    .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(s) {
+      stateErrors = 0;
+      rx = s.position.x; ry = s.position.y; lastTs = Date.now();
+
+      document.getElementById('posX').innerText = s.position.x.toFixed(2);
+      document.getElementById('posY').innerText = s.position.y.toFixed(2);
+      document.getElementById('infoId').innerText = s.robot_id;
+      document.getElementById('infoTs').innerText = new Date(s.last_updated_at).toLocaleTimeString();
+
+      var pct = Math.max(0, Math.min(100, s.battery_percentage));
+      document.getElementById('batPct').innerText = pct.toFixed(1) + '%';
+      document.getElementById('batFill').style.width  = pct + '%';
+      document.getElementById('batEmpty').style.width = (100 - pct) + '%';
+
+      setStatus('stBackend', 'OK', 'ok');
+      draw();
+      scheduleState();
+    })
+    .catch(function() {
+      stateErrors++;
+      var retryS = Math.round(backoffMs(stateErrors, 1000, 16000) / 1000);
+      setStatus('stBackend', 'UNREACHABLE (retry ' + retryS + 's)', 'bad');
+      scheduleState();
+    });
+}
+
+function pollHealth() {
+  fetch('/health')
+    .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(h) {
+      healthErrors = 0;
+      setStatus('stPlugin', h.plugin_connected ? 'CONNECTED' : 'OFFLINE',
+        h.plugin_connected ? 'ok' : 'bad');
+      scheduleHealth();
+    })
+    .catch(function() {
+      healthErrors++;
+      setStatus('stPlugin', 'ERROR', 'bad');
+      scheduleHealth();
+    });
+}
+
+// stale check runs independently
+setInterval(function() {
+  if (lastTs) {
+    stale = (Date.now() - lastTs > STALE_MS);
+    setStatus('stTelemetry', stale ? 'STALE' : 'LIVE', stale ? 'warn' : 'ok');
+    draw();
+  }
+}, 500);
+
+pollState();
+pollHealth();
+
+// ── keyboard ─────────────────────────────────────────────────────────────
+var held = {};
+var VALID = { w: 1, a: 1, s: 1, d: 1 };
+
+document.onkeydown = function(e) {
+  var k = (e.key || '').toLowerCase();
+  if (!VALID[k] || held[k]) return;
+  if (e.preventDefault) e.preventDefault();
+  held[k] = true;
+  document.getElementById('key' + k.toUpperCase()).className = 'key key-active';
+
+  fetch('/api/robot/command', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ command: k })
+  }).then(function(r) {
+    if (r.ok) {
+      document.getElementById('cmdMsg').innerHTML = 'Sent: <b>' + k.toUpperCase() + '</b>';
+    } else {
+      return r.json().then(function(b) {
+        document.getElementById('cmdMsg').innerHTML =
+          '<span class="bad">&nbsp;ERROR: ' + (b.error || 'failed') + '&nbsp;</span>';
+      });
+    }
+  }).catch(function() {
+    document.getElementById('cmdMsg').innerHTML =
+      '<span class="bad">&nbsp;NETWORK ERROR&nbsp;</span>';
+  });
+};
+
+document.onkeyup = function(e) {
+  var k = (e.key || '').toLowerCase();
+  if (!VALID[k]) return;
+  held[k] = false;
+  document.getElementById('key' + k.toUpperCase()).className = 'key';
+};
+
+draw();
+</script>
+</body>
+</html>
